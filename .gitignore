@@ -1,0 +1,41 @@
+# Node.js dependencies
+/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+bower_components/
+
+# Build directories
+/dist/
+/build/
+/public/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Optional npm cache directory
+.npm/
+
+# Yarn
+.yarn/
+yarn.lock
+
+# Temporary files
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo
