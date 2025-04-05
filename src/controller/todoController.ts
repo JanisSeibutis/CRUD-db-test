@@ -61,7 +61,7 @@ export const fetchAllTodos: RequestHandler = async (
   //     })
   //   }
   try {
-    const [rows] = await db.query<ITodo[]>("SELECT * FROM todos")
+    const [rows] = await db.query<ITodo[]>("SELECT * FROM todos.todos")
     res.json(rows)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
@@ -80,8 +80,18 @@ export const fetchTodoById = async (req: Request, res: Response) => {
   // })
 
   // res.json({ todo })
-  const sql = `SELECT * FROM todos WHERE id = ?`
-
+  const sql = `SELECT
+  todos.id AS todo_id,
+  todos.content AS todo_content,
+  todos.done AS todo_done,
+  todos.created_at AS todo_created_at,
+  subtasks.id AS subtask_id,
+  subtasks.content AS subtask_content,
+  subtasks.done AS subtask_done,
+  subtasks.created_at AS subtask_created_at
+  FROM todos.todos
+  LEFT JOIN todos.subtasks ON todos.id = subtasks.todo_id 
+  WHERE todos.id = ?`
   try {
     const [rows] = await db.query<ITodo[]>(sql, [id])
     const todo = rows[0]
@@ -89,13 +99,26 @@ export const fetchTodoById = async (req: Request, res: Response) => {
       res.status(404).json({ message: "Todo not found" })
       return
     }
-    res.json(todo)
+    res.json(formatTodo(rows))
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
     res.status(500).json({ error: message })
     return
   }
 }
+
+const formatTodo = (rows: any) => ({
+  id: rows[0].todo_id,
+  content: rows[0].todo_content,
+  done: rows[0].todo_done,
+  created_at: rows[0].todo_created_at,
+  subtasks: rows.map((row: any) => ({
+    id: row.subtask_id,
+    content: row.subtask_content,
+    done: row.subtask_done,
+    created_at: row.subtask_created_at,
+  })),
+})
 
 export const createTodo = async (req: Request, res: Response) => {
   const content = req.body.content
@@ -104,9 +127,9 @@ export const createTodo = async (req: Request, res: Response) => {
   }
 
   try {
-    const sql = `INSERT INTO todos (content) VALUES (?)`
+    const sql = `INSERT INTO todos.todos (content) VALUES (?)`
     const [result] = await db.query<ResultSetHeader>(sql, [content])
-    res.status(200).json(result)
+    res.status(201).json(result)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
     res.status(500).json({ error: message })
