@@ -3,7 +3,8 @@ import { Todo } from "../models/Todo"
 import { RequestHandler } from "express-serve-static-core"
 import { db } from "../config/db"
 import { ResultSetHeader, RowDataPacket } from "mysql2"
-import { ITodo } from "../models/iTodo"
+import { ITodo } from "../models/ITodo"
+import { ITodoDBRes } from "../models/ITodoDBRes"
 
 const todos: Todo[] = [
   new Todo("AAA", false),
@@ -93,7 +94,7 @@ export const fetchTodoById = async (req: Request, res: Response) => {
   LEFT JOIN todos.subtasks ON todos.id = subtasks.todo_id 
   WHERE todos.id = ?`
   try {
-    const [rows] = await db.query<ITodo[]>(sql, [id])
+    const [rows] = await db.query<ITodoDBRes[]>(sql, [id])
     const todo = rows[0]
     if (!todo) {
       res.status(404).json({ message: "Todo not found" })
@@ -107,7 +108,7 @@ export const fetchTodoById = async (req: Request, res: Response) => {
   }
 }
 
-const formatTodo = (rows: any) => ({
+const formatTodo = (rows: ITodoDBRes[]) => ({
   id: rows[0].todo_id,
   content: rows[0].todo_content,
   done: rows[0].todo_done,

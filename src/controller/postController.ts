@@ -3,7 +3,7 @@ import { Posts } from "../models/Posts"
 import { RequestHandler } from "express-serve-static-core"
 import { db } from "../config/db"
 import { ResultSetHeader, RowDataPacket } from "mysql2"
-import { IPost } from "../models/iPost"
+import { IPost } from "../models/IPost"
 
 const posts: Posts[] = [
   new Posts("Greeting", "Wasaaap dawg", "Janis"),
