@@ -15,8 +15,6 @@ export const fetchAllPosts = async (req: Request, res: Response) => {
     res.status(500).json({ error: message })
     return
   }
-
-  // res.json(filteredPosts)
 }
 
 export const fetchPostById = async (req: Request, res: Response) => {

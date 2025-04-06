@@ -1,4 +1,4 @@
-import { Request, Response } from "express"
+import { query, Request, Response } from "express"
 import { Todo } from "../models/Todo"
 import { RequestHandler } from "express-serve-static-core"
 import { db } from "../config/db"
@@ -10,71 +10,29 @@ export const fetchAllTodos: RequestHandler = async (
   req: Request,
   res: Response
 ) => {
-  // const filter = req.query.filter
-  // const sort = req.query.sort
+  const { filter, sort } = req.query
 
-  // let filteredTodos = todos
+  let query = `SELECT * FROM todos.todos`
 
-  // try {
-  //   if (filter) {
-  //     filteredTodos = todos.filter((todo) => {
-  //       return todo.content.includes(filter?.toString() || "")
-  //     })
-  //   }
+  const queryParams: string[] = []
 
-  //   if (
-  //     sort &&
-  //     sort.toString() !== "asc" &&
-  //     sort &&
-  //     sort.toString() !== "desc"
-  //   ) {
-  //     res.status(400).json({ error: "Sort is not correct" })
-  //     return
-  //   }
+  if (filter) {
+    query += ` WHERE todos.content LIKE ? COLLATE utf8mb4_general_ci`
+    queryParams.push(`%${filter}%`)
+  }
 
-  //   if (sort && sort === "asc") {
-  //     filteredTodos = filteredTodos.sort((a, b) => {
-  //       const todo1 = a.id
-  //       const todo2 = b.id
+  if (sort === "asc" || sort === "desc") {
+    query += ` ORDER BY todos.content ${sort.toUpperCase()}`
+  }
 
-  //       if (todo1 > todo2) return 1
-  //       if (todo1 < todo2) return -1
-  //       return 0
-  //     })
-  //   }
-
-  //   if (sort && sort === "desc") {
-  //     filteredTodos = filteredTodos.sort((a, b) => {
-  //       const todo1 = a.id
-  //       const todo2 = b.id
-
-  //       if (todo1 < todo2) return 1
-  //       if (todo1 > todo2) return -1
-  //       return 0
-  //     })
-  //   }
   try {
-    const [rows] = await db.query<ITodo[]>(`
-  SELECT 
-  todos.id AS todo_id,
-  todos.content AS todo_content,
-  todos.done AS todo_done,
-  todos.created_at AS todo_created_at,
-  subtasks.id AS subtask_id,
-  subtasks.content AS subtask_content,
-  subtasks.done AS subtask_done,
-  subtasks.created_at AS subtask_created_at
-  FROM todos.todos
-  LEFT JOIN todos.subtasks ON todos.id = subtasks.todo_id 
-  `)
+    const [rows] = await db.query<ITodoDBRes[]>(query, queryParams)
     res.json(rows)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
     res.status(500).json({ error: message })
     return
   }
-
-  // res.status(200).json(filteredTodos)
 }
 
 export const fetchTodoById = async (req: Request, res: Response) => {
