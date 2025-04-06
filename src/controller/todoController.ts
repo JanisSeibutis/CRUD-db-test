@@ -6,14 +6,6 @@ import { ResultSetHeader, RowDataPacket } from "mysql2"
 import { ITodo } from "../models/ITodo"
 import { ITodoDBRes } from "../models/ITodoDBRes"
 
-const todos: Todo[] = [
-  new Todo("AAA", false),
-  new Todo("ZZZ", true),
-  new Todo("Handla mat", true),
-  new Todo("Käka mat", false),
-  new Todo("Åka båt", false),
-]
-
 export const fetchAllTodos: RequestHandler = async (
   req: Request,
   res: Response
@@ -62,7 +54,19 @@ export const fetchAllTodos: RequestHandler = async (
   //     })
   //   }
   try {
-    const [rows] = await db.query<ITodo[]>("SELECT * FROM todos.todos")
+    const [rows] = await db.query<ITodo[]>(`
+  SELECT 
+  todos.id AS todo_id,
+  todos.content AS todo_content,
+  todos.done AS todo_done,
+  todos.created_at AS todo_created_at,
+  subtasks.id AS subtask_id,
+  subtasks.content AS subtask_content,
+  subtasks.done AS subtask_done,
+  subtasks.created_at AS subtask_created_at
+  FROM todos.todos
+  LEFT JOIN todos.subtasks ON todos.id = subtasks.todo_id 
+  `)
     res.json(rows)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
@@ -113,7 +117,7 @@ const formatTodo = (rows: ITodoDBRes[]) => ({
   content: rows[0].todo_content,
   done: rows[0].todo_done,
   created_at: rows[0].todo_created_at,
-  subtasks: rows.map((row: any) => ({
+  subtasks: rows.map((row) => ({
     id: row.subtask_id,
     content: row.subtask_content,
     done: row.subtask_done,

@@ -4,16 +4,9 @@ import { RequestHandler } from "express-serve-static-core"
 import { db } from "../config/db"
 import { ResultSetHeader, RowDataPacket } from "mysql2"
 import { IPost } from "../models/IPost"
-
-const posts: Posts[] = [
-  new Posts("Greeting", "Wasaaap dawg", "Janis"),
-  new Posts("A Book", "Text here", "Good author"),
-  new Posts("B Book", "Text here also", "Z Best"),
-]
+import { ICommentDBRes } from "../models/ICommentDBRes"
 
 export const fetchAllPosts = async (req: Request, res: Response) => {
-  // s
-
   try {
     const [rows] = await db.query<IPost[]>(`SELECT * FROM posts`)
     res.json(rows)
@@ -32,16 +25,44 @@ export const fetchPostById = async (req: Request, res: Response) => {
 
   // res.json(post)
   try {
-    const sql = `SELECT * FROM posts WHERE id = ?`
-    const [rows] = await db.query<IPost[]>(sql, [id])
+    const sql = `SELECT 
+    posts.id AS post_id,
+    posts.content AS post_content,
+    posts.author AS posts_author,
+    posts.created_at AS post_created_at,
+    comments.id AS comment_id,
+    comments.content AS comment_content,
+    comments.author AS comment_author,
+    comments.created_at AS comment_created_at,
+    comments.updated_at AS comment_updated_at
+    FROM posts.posts
+    LEFT JOIN posts.comments ON posts.id = comments.post_id
+    WHERE posts.id = ?
+    `
+
+    const [rows] = await db.query<ICommentDBRes[]>(sql, [id])
     const post = rows[0]
-    res.json(post)
+    res.json(formatDBRes(rows))
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error"
     res.status(500).json({ error: message })
     return
   }
 }
+
+const formatDBRes = (rows: ICommentDBRes[]) => ({
+  id: rows[0].post_id,
+  content: rows[0].post_content,
+  author: rows[0].post_author,
+  created_at: rows[0].post_created_at,
+  comment: rows.map((row) => ({
+    id: row.comment_id,
+    content: row.comment_content,
+    author: row.comment_author,
+    created_at: row.comment_created_at,
+    updated_at: row.comment_updated_at,
+  })),
+})
 
 export const createPost = async (req: Request, res: Response) => {
   const { title, content, author } = req.body // Destructured object
@@ -51,6 +72,7 @@ export const createPost = async (req: Request, res: Response) => {
 
   if (!title || !content || !author) {
     res.json({ error: "Content is missing" })
+    return
   }
 
   try {

@@ -2,15 +2,7 @@ import { Request, Response } from "express"
 import { RequestHandler } from "express-serve-static-core"
 import { db } from "../config/db"
 import { ResultSetHeader, RowDataPacket } from "mysql2"
-import { ISubtask } from "../models/iSubtask"
-
-// const Subtasks: Subtask[] = [
-//   new Subtask("AAA", false),
-//   new Subtask("ZZZ", true),
-//   new Subtask("Handla mat", true),
-//   new Subtask("Käka mat", false),
-//   new Subtask("Åka båt", false),
-// ]
+import { ISubtask } from "../models/ISubtask"
 
 export const fetchAllSubtasks: RequestHandler = async (
   req: Request,

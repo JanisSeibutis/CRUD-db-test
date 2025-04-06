@@ -11,10 +11,12 @@ app.use(cors()) // This makes the Express server except request from other domai
 import todoRouter from "./routes/todos"
 import postRouter from "./routes/posts"
 import subtaskRouter from "./routes/subtasks"
+import commentRouter from "./routes/comments"
 
 app.use("/todos", todoRouter)
 app.use("/posts", postRouter)
 app.use("/subtasks", subtaskRouter)
+app.use("/comments", commentRouter)
 
 connectToDatabase()
 
